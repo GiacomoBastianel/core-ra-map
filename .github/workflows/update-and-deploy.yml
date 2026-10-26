@@ -2,8 +2,11 @@ name: Update data and deploy
 
 on:
   schedule:
-    # Daily at 10:52 UTC (11:52 CET / 12:52 CEST), after JAO publishes the next business day at 10:30 Brussels time.
-    - cron: '52 10 * * *'
+    # Every day at 06:00 Brussels time. GitHub schedules are in UTC, so both 04:00 UTC (06:00 CEST, summer)
+    # and 05:00 UTC (06:00 CET, winter) are listed; the "gate" job lets through only the one that is
+    # 06:00 in Brussels on that day.
+    - cron: '0 4 * * *'
+    - cron: '0 5 * * *'
   workflow_dispatch:
     inputs:
       from:
@@ -27,7 +30,28 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      go: ${{ steps.check.outputs.go }}
+    steps:
+      - id: check
+        env:
+          EVENT: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          go=true
+          if [ "$EVENT" = "schedule" ]; then
+            offset=$(TZ=Europe/Brussels date +%z)
+            if [ "$SCHEDULE" = "0 4 * * *" ] && [ "$offset" != "+0200" ]; then go=false; fi
+            if [ "$SCHEDULE" = "0 5 * * *" ] && [ "$offset" != "+0100" ]; then go=false; fi
+            echo "Schedule '$SCHEDULE', Brussels offset $offset, run: $go"
+          fi
+          echo "go=$go" >> "$GITHUB_OUTPUT"
+
   update:
+    needs: gate
+    if: needs.gate.outputs.go == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

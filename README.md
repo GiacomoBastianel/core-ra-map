@@ -6,7 +6,7 @@ An hour-by-hour map of the remedial actions (RAs) that JAO publishes for the Cor
 
 ## How the data stays up to date
 
-`.github/workflows/update-and-deploy.yml` runs every day at 10:52 UTC, shortly after JAO publishes the next business day at 10:30 Brussels time. It:
+`.github/workflows/update-and-deploy.yml` runs every day at 06:00 Brussels time. It is scheduled in UTC for both summer and winter time, and a first step skips whichever doesn't match 06:00 in Brussels that day. JAO publishes each business day around 10:30 the day before, so the 06:00 run adds the current day. Each run:
 
 1. downloads the preventive and curative RAs from the JAO Publication Tool API (`/core/api/data/pra` and `/core/api/data/cra`), starting from the last day already on the map;
 2. merges them into `catalog.json` and `data/YYYY-MM.json`, recomputes the usage statistics and places any new RA or CNEC on the map;
