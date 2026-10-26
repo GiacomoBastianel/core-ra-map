@@ -1,0 +1,1046 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Hour-by-hour map of the preventive and curative remedial actions published by JAO for the Core capacity calculation region, with every action placed on its substation.">
+<meta property="og:title" content="Core remedial actions">
+<meta property="og:description" content="Hour-by-hour map of the preventive and curative remedial actions published by JAO for the Core capacity calculation region, with every action placed on its substation.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='11' fill='white' stroke='%232A51C4' stroke-width='5'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23D46C17'/%3E%3C/svg%3E">
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<title>Core Remedial Action Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: one-screen dispatch board. Day picker + MTU timeline across the top, map canvas on the left,
+   hour / catalogue panel on the right; on phones everything stacks and the page scrolls. */
+:root{
+  --bg:#ECEFF2; --surface:#F7F8FA; --raised:#FFFFFF; --ink:#131C25; --muted:#56636F; --faint:#8994A0; --rule:#D3DAE1;
+  --sea:#E2E8EE; --land:#F3F5F7; --land-core:#FFFFFF; --border:#C3CCD5;
+  --g380:rgba(172,70,58,.40); --g220:rgba(40,118,84,.36); --gsub:rgba(70,82,94,.55);
+  --prev:#2A51C4; --prev-soft:rgba(42,81,196,.13); --cur:#D46C17; --cur-soft:rgba(212,108,23,.15);
+  --cnec:#C4253A; --accent:#2A51C4; --warn:#94650A; --ok:#2E7D53; --halo:rgba(255,255,255,.94);
+  --shadow:0 1px 2px rgba(19,28,37,.06), 0 6px 18px rgba(19,28,37,.07);
+  --font-ui:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1318; --surface:#111920; --raised:#16202A; --ink:#E2E8EE; --muted:#98A6B3; --faint:#6A7885; --rule:#233039;
+    --sea:#0A1015; --land:#141D25; --land-core:#1A2530; --border:#2C3945;
+    --g380:rgba(236,122,104,.40); --g220:rgba(92,192,142,.30); --gsub:rgba(170,184,198,.55);
+    --prev:#7F9BFF; --prev-soft:rgba(127,155,255,.16); --cur:#FFA454; --cur-soft:rgba(255,164,84,.16);
+    --cnec:#FF6A72; --accent:#7F9BFF; --warn:#E2B54A; --ok:#5CC08E; --halo:rgba(13,19,24,.92);
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.35);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1318; --surface:#111920; --raised:#16202A; --ink:#E2E8EE; --muted:#98A6B3; --faint:#6A7885; --rule:#233039;
+  --sea:#0A1015; --land:#141D25; --land-core:#1A2530; --border:#2C3945;
+  --g380:rgba(236,122,104,.40); --g220:rgba(92,192,142,.30); --gsub:rgba(170,184,198,.55);
+  --prev:#7F9BFF; --prev-soft:rgba(127,155,255,.16); --cur:#FFA454; --cur-soft:rgba(255,164,84,.16);
+  --cnec:#FF6A72; --accent:#7F9BFF; --warn:#E2B54A; --ok:#5CC08E; --halo:rgba(13,19,24,.92);
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.35);
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+button,input,select{font:inherit;color:inherit}
+.app{display:grid;grid-template-rows:auto auto minmax(0,1fr);height:100%;gap:10px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 14px;box-sizing:border-box}
+
+/* ---------- header ---------- */
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px}
+.brand{min-width:0}
+.eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{margin:2px 0 0;font-size:24px;line-height:1.1;font-weight:760;font-stretch:118%;letter-spacing:-.01em;text-wrap:balance}
+h1 .tag{font-weight:500;font-stretch:90%;color:var(--muted);font-size:15px;letter-spacing:0;margin-left:8px}
+.daybar{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.dayctl{display:flex;align-items:center;gap:4px}
+.iconbtn{display:inline-grid;place-items:center;min-width:32px;height:32px;border-radius:8px;border:1px solid var(--rule);background:var(--raised);cursor:pointer;padding:0 8px}
+.iconbtn:hover{border-color:var(--faint)}
+.iconbtn:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.iconbtn svg{width:16px;height:16px}
+input[type=date]{height:32px;border-radius:8px;border:1px solid var(--rule);background:var(--raised);padding:0 8px;font-family:var(--font-mono);font-size:13px}
+.daylabel{font-weight:650;font-stretch:96%;min-width:126px}
+.monthstrip{display:flex;gap:2px;align-items:flex-end;flex-wrap:nowrap;overflow:hidden}
+.monthstrip button{width:9px;height:22px;border-radius:2px;border:0;padding:0;cursor:pointer;background:var(--rule);position:relative}
+.monthstrip button.sel{outline:2px solid var(--ink);outline-offset:1px}
+.monthstrip button[disabled]{opacity:.25;cursor:default}
+.monthstrip button .c{position:absolute;left:2px;right:2px;bottom:2px;height:3px;border-radius:2px;background:var(--cur)}
+.mslabel{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+
+/* ---------- MTU timeline ---------- */
+.timeline{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:stretch;background:var(--surface);border:1px solid var(--rule);border-radius:var(--r);padding:8px 10px}
+.tl-axis{display:flex;flex-direction:column;justify-content:space-between;font-family:var(--font-mono);font-size:10.5px;color:var(--muted);text-align:right;padding-block:2px 18px;white-space:nowrap}
+.tl-axis .p{color:var(--prev)} .tl-axis .c{color:var(--cur)}
+.tl-cols{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:3px;min-width:0}
+.mtu{display:grid;grid-template-rows:1fr 1fr auto;min-width:0;height:74px;border:0;background:transparent;border-radius:6px;padding:2px 1px 0;cursor:pointer;position:relative}
+.mtu:hover{background:var(--prev-soft)}
+.mtu.sel{background:var(--raised);box-shadow:inset 0 0 0 1.5px var(--ink)}
+.mtu .up,.mtu .dn{display:flex;justify-content:center;min-height:0}
+.mtu .up{align-items:flex-end;border-bottom:1px solid var(--rule)}
+.mtu .dn{align-items:flex-start}
+.mtu .bar{width:min(70%,14px);border-radius:2px 2px 0 0;background:var(--prev)}
+.mtu .dn .bar{border-radius:0 0 2px 2px;background:var(--cur)}
+.mtu .hl{font-family:var(--font-mono);font-size:10.5px;color:var(--muted);line-height:16px;text-align:center}
+.mtu.sel .hl{color:var(--ink);font-weight:600}
+.mtu.flag::after{content:"";position:absolute;inset:2px 1px 16px;border-radius:4px;background:repeating-linear-gradient(135deg,transparent 0 3px,var(--rule) 3px 5px);pointer-events:none;opacity:.8}
+.tl-play{display:flex;flex-direction:column;gap:6px;justify-content:center}
+
+/* ---------- body ---------- */
+.body{display:grid;grid-template-columns:minmax(0,1fr) 410px;gap:12px;min-height:0}
+.mapwrap{position:relative;min-height:0;border-radius:var(--r);overflow:hidden;border:1px solid var(--rule);background:var(--sea)}
+#base,#overlay{position:absolute;inset:0;display:block}
+#overlay{cursor:grab;touch-action:none}
+#overlay:active{cursor:grabbing}
+.site{cursor:pointer}
+.site .hit{fill:transparent}
+.lbl{font-family:var(--font-ui);font-size:11.5px;font-weight:620;font-stretch:92%;fill:var(--ink);paint-order:stroke;stroke:var(--halo);stroke-width:3.2px;stroke-linejoin:round;pointer-events:none}
+.lbl.sub{font-weight:450;font-size:10.5px;fill:var(--muted)}
+.cnt{font-family:var(--font-mono);font-size:10px;font-weight:600;fill:var(--ink);pointer-events:none;text-anchor:middle;dominant-baseline:central}
+.ghost{fill:var(--raised);stroke:var(--faint);stroke-width:1.2;cursor:pointer}
+.selring{fill:none;stroke:var(--ink);stroke-width:1.6;stroke-dasharray:3 3}
+@media (prefers-reduced-motion:no-preference){.selring{animation:spin 6s linear infinite;transform-box:fill-box;transform-origin:center}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.maptools{position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:6px}
+.maptools .iconbtn{box-shadow:var(--shadow)}
+.legend{position:absolute;left:10px;bottom:10px;background:color-mix(in srgb,var(--raised) 92%,transparent);border:1px solid var(--rule);border-radius:9px;padding:8px 10px;font-size:11.5px;display:grid;gap:4px;box-shadow:var(--shadow);max-width:calc(100% - 20px)}
+.legend .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.legend svg{flex:none}
+.legend .muted{color:var(--muted)}
+.toggles{position:absolute;left:10px;top:10px;display:flex;gap:6px;flex-wrap:wrap;max-width:calc(100% - 70px)}
+.chip{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:999px;border:1px solid var(--rule);background:var(--raised);font-size:12px;cursor:pointer;white-space:nowrap}
+.chip[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.chip .dot{width:9px;height:9px;border-radius:50%}
+.tip{position:absolute;pointer-events:none;background:var(--raised);border:1px solid var(--rule);border-radius:9px;box-shadow:var(--shadow);padding:9px 11px;font-size:12px;max-width:330px;z-index:5}
+.tip h4{margin:0 0 2px;font-size:13px;font-weight:700;font-stretch:95%}
+.tip .meta{color:var(--muted);font-size:11.5px;margin-bottom:6px}
+.tip ul{list-style:none;margin:0;padding:0;display:grid;gap:3px}
+.tip li{display:flex;gap:8px;justify-content:space-between}
+.tip .tap{font-family:var(--font-mono);font-size:11px;color:var(--muted);white-space:nowrap}
+.mapnote{position:absolute;right:10px;bottom:10px;font-size:10.5px;color:var(--muted);text-align:right;max-width:50%}
+.statusbanner{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:var(--raised);border:1px solid var(--rule);border-radius:999px;padding:6px 14px;font-size:12.5px;box-shadow:var(--shadow);white-space:nowrap}
+
+/* ---------- panel ---------- */
+.panel{display:flex;flex-direction:column;min-height:0;background:var(--surface);border:1px solid var(--rule);border-radius:var(--r);overflow:hidden}
+.tabs{display:flex;border-bottom:1px solid var(--rule);background:var(--raised)}
+.tabs button{flex:1;border:0;background:transparent;padding:10px 6px;font-weight:600;font-stretch:95%;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+.pane{overflow:auto;min-height:0;padding:14px 14px 18px;display:grid;gap:14px;align-content:start}
+.mtuhead{display:grid;gap:4px}
+.mtuhead .when{font-size:19px;font-weight:720;font-stretch:108%;line-height:1.15}
+.mtuhead .sub{font-family:var(--font-mono);font-size:11.5px;color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:6px;width:max-content;max-width:100%;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600;border:1px solid var(--rule);background:var(--raised)}
+.pill.ok{color:var(--ok)} .pill.warn{color:var(--warn)} .pill.none{color:var(--muted)}
+.pill .d{width:7px;height:7px;border-radius:50%;background:currentColor}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.kpi{background:var(--raised);border:1px solid var(--rule);border-radius:9px;padding:8px 10px;min-width:0}
+.kpi .v{font-family:var(--font-mono);font-size:21px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi .k{font-size:11.5px;color:var(--muted);line-height:1.25}
+.kpi.p .v{color:var(--prev)} .kpi.c .v{color:var(--cur)}
+.filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.filters select{height:28px;border-radius:999px;border:1px solid var(--rule);background:var(--raised);padding:0 8px;font-size:12px;max-width:150px}
+.sect{display:grid;gap:6px}
+.sect h3{margin:0;font-size:12px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;color:var(--muted);display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sect h3 .n{font-family:var(--font-mono);letter-spacing:0;text-transform:none;font-weight:500}
+.tsoh{font-size:11px;font-weight:700;color:var(--faint);margin-top:6px;letter-spacing:.04em;text-transform:uppercase}
+.list{display:grid;gap:4px}
+.item{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;padding:6px 8px;border-radius:8px;background:var(--raised);border:1px solid transparent;cursor:pointer;text-align:left;width:100%}
+.item:hover,.item.hot{border-color:var(--faint)}
+.item.sel{border-color:var(--ink)}
+.nm{min-width:0;overflow:hidden}
+.nm b{display:block;font-weight:620;font-stretch:96%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nm small{display:block;font-family:var(--font-mono);font-size:10.5px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .tap,details.cra .tap{font-family:var(--font-mono);font-size:11.5px;white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}
+.item .tap .d,details.cra .tap .d{display:block;font-size:10.5px;color:var(--muted)}
+details.cra summary:hover{background:var(--cur-soft);border-radius:8px}
+.kpi{cursor:pointer;text-align:left;font:inherit;color:inherit}
+.kpi:hover{border-color:var(--faint)}
+.ico{width:14px;height:14px;flex:none}
+details.cra{border-radius:8px;background:var(--raised);border:1px solid transparent}
+details.cra[open]{border-color:var(--rule)}
+details.cra summary{list-style:none;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;padding:6px 8px;cursor:pointer}
+details.cra summary::-webkit-details-marker{display:none}
+details.cra .cn{padding:0 10px 8px 30px;display:grid;gap:6px;font-size:12px}
+.co{display:grid;gap:2px}
+.co .cot{font-size:11px;color:var(--muted)}
+.co .cot b{color:var(--ink);font-weight:600}
+.co ul{margin:0;padding-left:14px}
+.co li{line-height:1.35}
+.co li .t{font-family:var(--font-mono);font-size:10.5px;color:var(--faint)}
+.empty{color:var(--muted);font-size:12.5px;padding:8px 2px}
+.selcard{background:var(--raised);border:1px solid var(--ink);border-radius:10px;padding:10px 12px;display:grid;gap:8px}
+.selcard .hd{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.selcard h4{margin:0;font-size:15px;font-weight:720;font-stretch:104%}
+.selcard .meta{font-size:12px;color:var(--muted)}
+.selcard .coord{font-family:var(--font-mono);font-size:11.5px}
+.selcard p{margin:0;font-size:12.5px;max-width:62ch}
+.selcard .src{font-size:11.5px;color:var(--muted)}
+.selcard .row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.linkbtn{border:1px solid var(--rule);background:var(--surface);border-radius:999px;padding:4px 10px;font-size:12px;cursor:pointer}
+.linkbtn:hover{border-color:var(--faint)}
+.closebtn{border:0;background:transparent;cursor:pointer;color:var(--muted);font-size:18px;line-height:1;padding:2px 4px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:12px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;font-family:var(--font-mono);font-size:11.5px;font-variant-numeric:tabular-nums}
+.catctl{display:grid;gap:8px}
+.catctl input[type=search]{height:34px;border-radius:9px;border:1px solid var(--rule);background:var(--raised);padding:0 10px}
+.catrow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;padding:7px 8px;border-radius:8px;background:var(--raised);border:1px solid transparent;cursor:pointer;width:100%;text-align:left}
+.catrow:hover{border-color:var(--faint)}
+.catrow.sel{border-color:var(--ink)}
+.catrow .use{font-family:var(--font-mono);font-size:10.5px;color:var(--muted);text-align:right;white-space:nowrap;display:grid;justify-items:end;gap:2px}
+.catrow .use b{font-weight:600}
+.catrow .use .p{color:var(--prev)} .catrow .use .c{color:var(--cur)}
+.spark{display:block}
+.about{display:grid;gap:12px;font-size:13px}
+.about h3{margin:4px 0 0;font-size:14px;font-weight:720;font-stretch:104%}
+.about p{margin:0;max-width:64ch}
+.about ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.about a{color:var(--accent)}
+.about code{font-family:var(--font-mono);font-size:12px;background:var(--raised);border:1px solid var(--rule);border-radius:4px;padding:0 4px}
+.copied{font-size:12px;color:var(--ok)}
+.loading{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--font-mono);font-size:12px;color:var(--muted)}
+.err{color:var(--cnec)}
+@media (max-width:980px){
+  html,body{height:auto}
+  .app{height:auto;display:flex;flex-direction:column}
+  .body{display:flex;flex-direction:column}
+  .mapwrap{height:64vh;min-height:380px}
+  .panel{max-height:none}
+  .pane{overflow:visible}
+  .mapnote{display:none}
+}
+@media (max-width:560px){
+  h1{font-size:20px}
+  h1 .tag{display:block;margin:2px 0 0;font-size:13px}
+  .mtu{height:62px}
+  .mtu .hl{font-size:9px}
+  .tl-axis{display:none}
+  .timeline{grid-template-columns:minmax(0,1fr) auto;padding:6px}
+  .legend{font-size:11px}
+  .toggles .chip{height:26px;padding:0 8px}
+  .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .kpi .v{font-size:18px}
+  .monthstrip button{width:7px}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="top">
+    <div class="brand">
+      <div class="eyebrow">JAO Publication Tool · Core CCR · day-ahead</div>
+      <h1>Core remedial actions<span class="tag" id="coverage"></span></h1>
+    </div>
+    <div class="daybar">
+      <div class="dayctl">
+        <button class="iconbtn" id="prevDay" aria-label="Previous business day"><svg viewBox="0 0 16 16"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <input type="date" id="date" aria-label="Business day">
+        <button class="iconbtn" id="nextDay" aria-label="Next business day"><svg viewBox="0 0 16 16"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+      <div>
+        <div class="mslabel" id="msLabel">Activity per day</div>
+        <div class="monthstrip" id="monthStrip" role="group" aria-label="Days of the selected month"></div>
+      </div>
+    </div>
+  </header>
+
+  <section class="timeline" aria-label="Market time units of the selected day">
+    <div class="tl-axis"><span class="p" id="axP">preventive</span><span class="c" id="axC">curative</span></div>
+    <div class="tl-cols" id="tlCols"></div>
+    <div class="tl-play">
+      <button class="iconbtn" id="play" aria-label="Play through the hours" title="Play (space)"><svg viewBox="0 0 16 16" id="playIco"><path d="M5 3.5v9l7-4.5z" fill="currentColor"/></svg></button>
+    </div>
+  </section>
+
+  <main class="body">
+    <div class="mapwrap" id="mapwrap">
+      <canvas id="base" aria-hidden="true"></canvas>
+      <svg id="overlay" role="img" aria-label="Map of remedial actions applied in the selected hour"></svg>
+      <div class="toggles" id="mapToggles">
+        <button class="chip" id="tgAvail" aria-pressed="false" title="Show every substation with a remedial action in the JAO list, even when unused this hour"><span class="dot" style="background:transparent;border:1.5px solid var(--faint)"></span>All available RAs</button>
+        <button class="chip" id="tgGrid" aria-pressed="true" title="Core grid from the JAO Static Grid Model"><span class="dot" style="background:var(--g380)"></span>Grid</button>
+      </div>
+      <div class="maptools">
+        <button class="iconbtn" id="zin" aria-label="Zoom in"><svg viewBox="0 0 16 16"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+        <button class="iconbtn" id="zout" aria-label="Zoom out"><svg viewBox="0 0 16 16"><path d="M3 8h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+        <button class="iconbtn" id="zreset" aria-label="Reset view"><svg viewBox="0 0 16 16"><path d="M2.5 6V2.5H6M13.5 6V2.5H10M2.5 10v3.5H6M13.5 10v3.5H10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+      <div class="legend" id="legend">
+        <div class="row"><svg width="14" height="14"><circle cx="7" cy="7" r="5.5" fill="var(--raised)" stroke="var(--prev)" stroke-width="3"/></svg>Preventive <svg width="14" height="14"><circle cx="7" cy="7" r="5.5" fill="var(--raised)" stroke="var(--cur)" stroke-width="3"/></svg>Curative</div>
+        <div class="row muted"><svg width="14" height="14"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>PST / tap <svg width="14" height="14"><rect x="3" y="3" width="8" height="8" transform="rotate(45 7 7)" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Bus-bar topology <svg width="22" height="14"><path d="M1 7h20" stroke="currentColor" stroke-width="1.6" stroke-dasharray="3 2"/></svg>Line switching</div>
+        <div class="row muted" id="legGrid"><svg width="22" height="10"><path d="M1 5h20" stroke="var(--g380)" stroke-width="2"/></svg>380/400 kV <svg width="22" height="10"><path d="M1 5h20" stroke="var(--g220)" stroke-width="2"/></svg>220 kV</div>
+        <div class="row muted" id="legCnec" hidden><svg width="22" height="10"><path d="M1 5h20" stroke="var(--cnec)" stroke-width="2.4"/></svg>CNEC <svg width="22" height="10"><path d="M1 5h20" stroke="var(--muted)" stroke-width="1.6" stroke-dasharray="4 3"/></svg>contingency</div>
+      </div>
+      <div class="mapnote" id="mapnote">Positions: OpenStreetMap contributors · JAO Static Grid Model</div>
+      <div class="statusbanner" id="banner" hidden></div>
+      <div class="tip" id="tip" hidden></div>
+      <div class="loading" id="loading">Loading Core grid and remedial actions…</div>
+    </div>
+
+    <aside class="panel" aria-label="Details">
+      <div class="tabs" role="tablist">
+        <button role="tab" id="t-hour" aria-selected="true" aria-controls="p-hour">This hour</button>
+        <button role="tab" id="t-cat" aria-selected="false" aria-controls="p-cat">RA catalogue</button>
+        <button role="tab" id="t-about" aria-selected="false" aria-controls="p-about">Sources</button>
+      </div>
+      <div class="pane" id="p-hour" role="tabpanel"></div>
+      <div class="pane" id="p-cat" role="tabpanel" hidden></div>
+      <div class="pane" id="p-about" role="tabpanel" hidden></div>
+    </aside>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script>
+(() => {
+'use strict';
+const TZ = 'Europe/Brussels';
+const $ = s => document.querySelector(s);
+function el(tag, attrs, ...kids){
+  const e = document.createElement(tag);
+  if (attrs) for (const [k, v] of Object.entries(attrs)){
+    if (v === false || v == null) continue;
+    if (k === 'class') e.className = v;
+    else if (k === 'text') e.textContent = v;
+    else if (k === 'html') e.innerHTML = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v === true ? '' : v);
+  }
+  for (const kid of kids) if (kid != null && kid !== false) e.append(kid);
+  return e;
+}
+const SVGNS = 'http://www.w3.org/2000/svg';
+function sv(tag, attrs){ const e = document.createElementNS(SVGNS, tag); if (attrs) for (const [k, v] of Object.entries(attrs)) if (v != null) e.setAttribute(k, v); return e; }
+const fmtInt = new Intl.NumberFormat('en-GB');
+const minus = n => (n < 0 ? '−' + Math.abs(n) : (n > 0 ? '+' + n : '0'));
+const tapStr = n => (n == null ? '–' : (n < 0 ? '−' + Math.abs(n) : String(n)));
+
+/* ---------------- state ---------------- */
+const S = {
+  ras: [], extra: [], sites: new Map(), cnecs: [], reasons: [], months: new Set(), dayIdx: new Map(), monthKeys: [],
+  cache: new Map(), date: null, hours: [], hourData: [], h: null,
+  f: { P: true, C: true, types: new Set(['PST', 'TOPO', 'LINE']), tso: '' },
+  showAvail: false, showGrid: true, sel: null, hot: null, playing: null, catQuery: '', catTso: '', catType: '', catUnused: true,
+  view: null
+};
+const TYPE_GROUP = { PST: 'PST', TAP: 'PST', SPLIT: 'TOPO', MERGE: 'TOPO', OTHER: 'TOPO', SPS: 'TOPO', HVDC: 'TOPO', LINE: 'LINE', CLOSE: 'TOPO' };
+const tg = r => TYPE_GROUP[r.type] || 'TOPO';
+
+/* ---------------- time helpers ---------------- */
+const partsFmt = new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', hourCycle: 'h23' });
+const localCache = new Map();
+function local(h){
+  let v = localCache.get(h);
+  if (!v){ const p = {}; for (const x of partsFmt.formatToParts(new Date(h * 3600e3))) p[x.type] = x.value; v = { date: `${p.year}-${p.month}-${p.day}`, hour: +p.hour % 24 }; localCache.set(h, v); }
+  return v;
+}
+const zoneFmt = new Intl.DateTimeFormat('en-GB', { timeZone: TZ, timeZoneName: 'short' });
+function zone(h){ const z = zoneFmt.formatToParts(new Date(h * 3600e3)).find(x => x.type === 'timeZoneName'); const s = z ? z.value : ''; if (/\+2/.test(s) || s === 'CEST') return 'CEST'; if (/\+1/.test(s) || s === 'CET') return 'CET'; return s; }
+function hoursOfDay(d){ const [y, m, dd] = d.split('-').map(Number); const base = Math.floor(Date.UTC(y, m - 1, dd) / 3600e3) - 3; const out = []; for (let h = base; h < base + 30; h++) if (local(h).date === d) out.push(h); return out; }
+const utcMonth = h => new Date(h * 3600e3).toISOString().slice(0, 7);
+const longDay = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+const monthName = new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+const shortDay = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+function dUTC(d){ const [y, m, dd] = d.split('-').map(Number); return new Date(Date.UTC(y, m - 1, dd)); }
+const fmtDay = d => longDay.format(dUTC(d));
+function addDays(d, n){ const t = dUTC(d); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); }
+const pad = n => String(n).padStart(2, '0');
+const utcHour = h => pad(new Date(h * 3600e3).getUTCHours());
+
+/* ---------------- data ---------------- */
+function loadMonth(mk){
+  if (!S.months.has(mk)) return Promise.resolve(null);
+  if (!S.cache.has(mk)){
+    S.cache.set(mk, fetch(`data/${mk}.json`).then(r => { if (!r.ok) throw new Error(`data/${mk}.json: HTTP ${r.status}`); return r.json(); })
+      .then(j => { const m = new Map(); for (const row of j.h) m.set(row[0], { pr: row[1], p: row[2], cr: row[3], c: row[4] }); return m; }));
+  }
+  return S.cache.get(mk);
+}
+async function loadDay(d){
+  const hs = hoursOfDay(d);
+  const maps = await Promise.all([...new Set(hs.map(utcMonth))].map(loadMonth));
+  return { hs, data: hs.map(h => { for (const m of maps) if (m && m.has(h)) return m.get(h); return null; }) };
+}
+function actionsOf(e){
+  const P = [], C = new Map();
+  if (!e) return { P, C: [] };
+  for (const [ra, b, a] of e.p || []) P.push({ ra, b, a });
+  for (const row of e.c || []){
+    const cn = row[0];
+    for (let k = 1; k < row.length; k += 3){
+      const ra = row[k]; let x = C.get(ra);
+      if (!x){ x = { ra, rows: [] }; C.set(ra, x); }
+      x.rows.push({ cn, b: row[k + 1], a: row[k + 2] });
+    }
+  }
+  return { P, C: [...C.values()] };
+}
+function passes(raIdx){
+  const r = S.ras[raIdx]; if (!r) return false;
+  if (!S.f.types.has(tg(r))) return false;
+  if (S.f.tso && r.tso !== S.f.tso) return false;
+  return true;
+}
+function filtered(e){
+  const { P, C } = actionsOf(e);
+  return { P: S.f.P ? P.filter(x => passes(x.ra)) : [], C: S.f.C ? C.filter(x => passes(x.ra)) : [], allP: P, allC: C };
+}
+
+/* ---------------- map ---------------- */
+const M = { w: 0, h: 0, dpr: 1, t: d3.zoomIdentity, proj: null, countries: [], zoom: null, grid: null, ready: false };
+function cssv(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function setupMap(topo, grid){
+  const fc = topojson.feature(topo, topo.objects.countries).features;
+  const CORE = new Set(['France', 'Belgium', 'Netherlands', 'Luxembourg', 'Germany', 'Austria', 'Czechia', 'Slovakia', 'Poland', 'Hungary', 'Slovenia', 'Croatia', 'Romania']);
+  M.countries = fc.map(f => ({ f, core: CORE.has(f.properties.name) }));
+  M.mesh = topojson.mesh(topo, topo.objects.countries, (a, b) => a !== b);
+  M.gridRaw = grid;
+  M.zoom = d3.zoom().scaleExtent([1, 60]).on('zoom', ev => { M.t = ev.transform; drawBase(); placeOverlay(); hideTip(); });
+  d3.select('#overlay').call(M.zoom).on('dblclick.zoom', null);
+  new ResizeObserver(() => resize()).observe($('#mapwrap'));
+  resize();
+}
+function resize(){
+  const r = $('#mapwrap').getBoundingClientRect();
+  if (r.width < 10 || r.height < 10) return;
+  const changed = Math.abs(r.width - M.w) > 0.5 || Math.abs(r.height - M.h) > 0.5;
+  if (!changed && M.ready) return;
+  M.w = r.width; M.h = r.height; M.dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+  const c = $('#base'); c.width = Math.round(M.w * M.dpr); c.height = Math.round(M.h * M.dpr); c.style.width = M.w + 'px'; c.style.height = M.h + 'px';
+  d3.select('#overlay').attr('width', M.w).attr('height', M.h).attr('viewBox', `0 0 ${M.w} ${M.h}`);
+  const core = { type: 'FeatureCollection', features: M.countries.filter(x => x.core && x.f.properties.name !== 'France').map(x => x.f).concat([{ type: 'Feature', geometry: { type: 'MultiPoint', coordinates: [[-1.8, 43.3], [2.5, 50.9], [7.5, 47.5]] } }]) };
+  const pad = M.w < 560 ? 8 : 22;
+  M.proj = d3.geoConicConformal().parallels([35, 65]).rotate([-12, 0]).fitExtent([[pad, pad + (M.w < 560 ? 30 : 34)], [M.w - pad, M.h - pad - (M.w < 560 ? 70 : 64)]], core);
+  const path = d3.geoPath(M.proj);
+  for (const x of M.countries) x.p2d = new Path2D(path(x.f) || '');
+  M.borders = new Path2D(path(M.mesh) || '');
+  const gs = M.gridRaw.s.map(([la, lo]) => M.proj([lo, la]));
+  M.grid = { 380: [], 220: [], subs: gs };
+  for (const [i, j, kv] of M.gridRaw.l) (kv >= 300 ? M.grid[380] : M.grid[220]).push([gs[i], gs[j]]);
+  for (const s of S.sites.values()) s.xy = M.proj([s.lon, s.lat]);
+  for (const c of S.cnecs){
+    c.xy = c.g ? [M.proj([c.g[1], c.g[0]]), M.proj([c.g[3], c.g[2]])] : null;
+    c.xyco = c.gco ? [M.proj([c.gco[1], c.gco[0]]), M.proj([c.gco[3], c.gco[2]])] : null;
+  }
+  M.zoom.extent([[0, 0], [M.w, M.h]]).translateExtent([[-M.w * 0.3, -M.h * 0.3], [M.w * 1.3, M.h * 1.3]]);
+  M.ready = true;
+  drawBase(); renderOverlay();
+}
+function drawBase(){
+  if (!M.ready) return;
+  const ctx = $('#base').getContext('2d'); const t = M.t;
+  ctx.setTransform(M.dpr, 0, 0, M.dpr, 0, 0);
+  ctx.fillStyle = cssv('--sea'); ctx.fillRect(0, 0, M.w, M.h);
+  ctx.save(); ctx.translate(t.x, t.y); ctx.scale(t.k, t.k);
+  const land = cssv('--land'), landCore = cssv('--land-core');
+  for (const x of M.countries){ ctx.fillStyle = x.core ? landCore : land; ctx.fill(x.p2d); }
+  ctx.strokeStyle = cssv('--border'); ctx.lineWidth = 0.9 / t.k; ctx.stroke(M.borders);
+  if (S.showGrid){
+    const lw = Math.min(1.7, 0.5 + 0.22 * Math.log2(t.k)) / t.k;
+    for (const kv of [220, 380]){
+      ctx.beginPath();
+      for (const [a, b] of M.grid[kv]){ ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); }
+      ctx.strokeStyle = cssv(kv === 380 ? '--g380' : '--g220'); ctx.lineWidth = kv === 380 ? lw * 1.3 : lw; ctx.stroke();
+    }
+    if (t.k >= 3){
+      ctx.fillStyle = cssv('--gsub'); const rr = Math.min(2.2, 0.6 + 0.25 * Math.log2(t.k)) / t.k;
+      ctx.beginPath(); for (const p of M.grid.subs){ ctx.moveTo(p[0] + rr, p[1]); ctx.arc(p[0], p[1], rr, 0, Math.PI * 2); } ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+/* overlay */
+const ov = {};
+function initOverlay(){
+  const svg = d3.select('#overlay');
+  ov.cnec = svg.append('g'); ov.lines = svg.append('g'); ov.ghost = svg.append('g'); ov.sites = svg.append('g'); ov.labels = svg.append('g');
+  svg.on('click', ev => { if (ev.target === svg.node()){ setSel(null); } });
+}
+function groupKey(r){ return r.type === 'LINE' && r.site2 ? `L:${r.site}|${r.site2}` : r.site; }
+function buildGroups(view){
+  const g = new Map();
+  const add = (it, stage) => {
+    const r = S.ras[it.ra]; if (!r || !r.site || !S.sites.has(r.site)) return;
+    const key = groupKey(r);
+    let x = g.get(key);
+    if (!x){ x = { key, site: r.site, site2: r.type === 'LINE' ? r.site2 : null, P: [], C: [] }; g.set(key, x); }
+    x[stage].push(it);
+  };
+  view.P.forEach(it => add(it, 'P')); view.C.forEach(it => add(it, 'C'));
+  return [...g.values()];
+}
+function gpos(g){
+  const a = S.sites.get(g.site).xy;
+  if (g.site2 && S.sites.has(g.site2)){ const b = S.sites.get(g.site2).xy; return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; }
+  return a;
+}
+function shapeFor(g){
+  const all = g.P.concat(g.C).map(x => S.ras[x.ra]);
+  if (g.site2) return 'line';
+  return all.some(r => tg(r) === 'PST') ? 'circle' : 'diamond';
+}
+function radius(n){ return 7 + 3.1 * Math.sqrt(Math.max(0, n - 1)); }
+function renderOverlay(){
+  if (!M.ready || !S.view) return;
+  const t = M.t;
+  const groups = S.view.groups;
+  // line RAs
+  const lines = groups.filter(g => g.site2);
+  ov.lines.selectAll('line').data(lines, d => d.key).join('line')
+    .attr('stroke', d => d.C.length && !d.P.length ? 'var(--cur)' : 'var(--prev)').attr('stroke-width', 2.6).attr('stroke-dasharray', '6 4').attr('stroke-linecap', 'round');
+  // ghosts
+  const activeSites = new Set(groups.flatMap(g => [g.site, g.site2]).filter(Boolean));
+  const ghosts = S.showAvail ? [...S.sites.values()].filter(s => !activeSites.has(s.id)) : [];
+  ov.ghost.selectAll(':scope > circle').data(ghosts, d => d.id).join(enter => enter.append('circle').attr('class', 'ghost').attr('r', 4)
+      .on('mouseenter', (ev, d) => showGhostTip(ev, d)).on('mousemove', moveTip).on('mouseleave', hideTip)
+      .on('click', (ev, d) => { ev.stopPropagation(); setSel({ kind: 'site', id: d.id }); }));
+  // selected substation that has no action this hour
+  let selIdle = [];
+  if (S.sel){
+    const sid = S.sel.kind === 'site' ? S.sel.id : (S.ras[S.sel.id] || {}).site;
+    if (sid && S.sites.has(sid) && !activeSites.has(sid)) selIdle = [S.sites.get(sid)];
+  }
+  const si = ov.ghost.selectAll('g.selidle').data(selIdle, d => d.id).join(enter => { const g = enter.append('g').attr('class', 'selidle'); g.append('circle').attr('class', 'ghost').attr('r', 5); g.append('circle').attr('class', 'selring').attr('r', 11); g.append('text').attr('class', 'lbl').attr('x', 15).attr('y', 4); return g; });
+  si.select('text').text(d => short(d.name) + ' · not used this hour');
+  // site markers
+  const sel = ov.sites.selectAll('g.site').data(groups, d => d.key).join(enter => {
+    const g = enter.append('g').attr('class', 'site').attr('tabindex', 0).attr('role', 'button');
+    g.append('circle').attr('class', 'hit');
+    g.append('g').attr('class', 'shape');
+    g.append('text').attr('class', 'cnt');
+    g.on('mouseenter', (ev, d) => { S.hot = d.key; showSiteTip(ev, d); highlightRows(); })
+      .on('mousemove', moveTip)
+      .on('mouseleave', () => { S.hot = null; hideTip(); highlightRows(); })
+      .on('click', (ev, d) => { ev.stopPropagation(); setSel({ kind: 'site', id: d.site, key: d.key }); })
+      .on('keydown', (ev, d) => { if (ev.key === 'Enter' || ev.key === ' '){ ev.preventDefault(); setSel({ kind: 'site', id: d.site, key: d.key }); } });
+    return g;
+  });
+  sel.attr('aria-label', d => `${S.sites.get(d.site).name}: ${d.P.length} preventive, ${d.C.length} curative`);
+  sel.each(function (d){
+    const n = d.P.length + d.C.length, r = radius(n), shape = shapeFor(d);
+    d.r = r;
+    const g = d3.select(this);
+    g.select('.hit').attr('r', Math.max(r + 5, 14));
+    const sh = g.select('.shape'); sh.selectAll('*').remove();
+    const fp = d.P.length / n;
+    const ring = 3.4;
+    if (shape === 'circle'){
+      sh.append('circle').attr('r', r + 1.6).attr('fill', 'var(--halo)');
+      if (fp === 1 || fp === 0){
+        sh.append('circle').attr('r', r - ring / 2).attr('fill', 'var(--raised)').attr('stroke', fp ? 'var(--prev)' : 'var(--cur)').attr('stroke-width', ring);
+      } else {
+        sh.append('circle').attr('r', r - ring).attr('fill', 'var(--raised)');
+        const arc = d3.arc().innerRadius(r - ring).outerRadius(r);
+        sh.append('path').attr('d', arc({ startAngle: 0, endAngle: fp * 2 * Math.PI })).attr('fill', 'var(--prev)');
+        sh.append('path').attr('d', arc({ startAngle: fp * 2 * Math.PI, endAngle: 2 * Math.PI })).attr('fill', 'var(--cur)');
+      }
+    } else {
+      const s = r * 0.95;
+      sh.append('rect').attr('x', -s - 1.6).attr('y', -s - 1.6).attr('width', 2 * s + 3.2).attr('height', 2 * s + 3.2).attr('rx', 2.5).attr('transform', 'rotate(45)').attr('fill', 'var(--halo)');
+      if (fp === 1 || fp === 0){
+        sh.append('rect').attr('x', -s + ring / 2).attr('y', -s + ring / 2).attr('width', 2 * s - ring).attr('height', 2 * s - ring).attr('rx', 2).attr('transform', 'rotate(45)')
+          .attr('fill', 'var(--raised)').attr('stroke', fp ? 'var(--prev)' : 'var(--cur)').attr('stroke-width', ring);
+      } else {
+        sh.append('rect').attr('x', -s).attr('y', -s).attr('width', 2 * s).attr('height', 2 * s).attr('rx', 2).attr('transform', 'rotate(45)').attr('fill', 'var(--cur)');
+        sh.append('rect').attr('x', -s).attr('y', -s).attr('width', 2 * s).attr('height', s).attr('rx', 2).attr('transform', 'rotate(45)').attr('fill', 'var(--prev)');
+        sh.append('rect').attr('x', -s + ring).attr('y', -s + ring).attr('width', 2 * s - 2 * ring).attr('height', 2 * s - 2 * ring).attr('rx', 1.5).attr('transform', 'rotate(45)').attr('fill', 'var(--raised)');
+      }
+    }
+    if (shape === 'line'){
+      sh.selectAll('*').remove();
+      const s = r * 0.85;
+      sh.append('rect').attr('x', -s - 1.6).attr('y', -s - 1.6).attr('width', 2 * s + 3.2).attr('height', 2 * s + 3.2).attr('transform', 'rotate(45)').attr('fill', 'var(--halo)');
+      sh.append('rect').attr('x', -s + ring / 2).attr('y', -s + ring / 2).attr('width', 2 * s - ring).attr('height', 2 * s - ring).attr('transform', 'rotate(45)')
+        .attr('fill', 'var(--raised)').attr('stroke', d.C.length && !d.P.length ? 'var(--cur)' : 'var(--prev)').attr('stroke-width', ring);
+    }
+    if (S.sel && S.sel.kind !== 'ra' && (S.sel.key === d.key || (!S.sel.key && S.sel.id === d.site))) sh.append('circle').attr('class', 'selring').attr('r', r + 6);
+    if (S.sel && S.sel.kind === 'ra' && [...d.P, ...d.C].some(x => x.ra === S.sel.id)) sh.append('circle').attr('class', 'selring').attr('r', r + 6);
+    g.select('.cnt').text(n > 1 ? n : '');
+  });
+  sel.sort((a, b) => (a.P.length + a.C.length) - (b.P.length + b.C.length));
+  renderCnecs();
+  placeOverlay();
+}
+function renderCnecs(){
+  // CNECs & contingencies for curative actions of the selected site / RA (or hovered row)
+  const list = [];
+  const pick = S.hotRa != null ? (ra => ra === S.hotRa) : (S.sel ? (ra => S.sel.kind === 'ra' ? ra === S.sel.id : S.ras[ra] && (S.ras[ra].site === S.sel.id || S.ras[ra].site2 === S.sel.id)) : null);
+  if (pick && S.view){
+    const seen = new Set();
+    for (const c of S.view.C) if (pick(c.ra)) for (const row of c.rows){ if (seen.has(row.cn)) continue; seen.add(row.cn); const cn = S.cnecs[row.cn]; if (cn) list.push(cn); }
+  }
+  const co = []; const seenCo = new Set();
+  for (const c of list) if (c.xyco){ const k = c.co; if (!seenCo.has(k)){ seenCo.add(k); co.push(c); } }
+  const cne = list.filter(c => c.xy);
+  ov.cnec.selectAll('line.co').data(co, d => d.co).join('line').attr('class', 'co').attr('stroke', 'var(--muted)').attr('stroke-width', 1.8).attr('stroke-dasharray', '5 4').attr('stroke-linecap', 'round');
+  ov.cnec.selectAll('line.cne').data(cne, d => d.cne + '|' + d.co).join('line').attr('class', 'cne').attr('stroke', 'var(--cnec)').attr('stroke-width', 2.6).attr('stroke-linecap', 'round').attr('opacity', .85);
+  ov.cnec.selectAll('circle.cnp').data(cne.filter(c => c.g[0] === c.g[2] && c.g[1] === c.g[3]), d => d.cne).join('circle').attr('class', 'cnp').attr('r', 6).attr('fill', 'none').attr('stroke', 'var(--cnec)').attr('stroke-width', 2);
+  $('#legCnec').hidden = !(cne.length || co.length);
+}
+function placeOverlay(){
+  if (!M.ready || !S.view) return;
+  const t = M.t;
+  const P = p => [t.applyX(p[0]), t.applyY(p[1])];
+  ov.lines.selectAll('line').each(function (d){ const a = P(S.sites.get(d.site).xy), b = P(S.sites.get(d.site2).xy); this.setAttribute('x1', a[0]); this.setAttribute('y1', a[1]); this.setAttribute('x2', b[0]); this.setAttribute('y2', b[1]); });
+  ov.ghost.selectAll(':scope > circle').each(function (d){ const p = P(d.xy); this.setAttribute('cx', p[0]); this.setAttribute('cy', p[1]); });
+  ov.ghost.selectAll('g.selidle').each(function (d){ const p = P(d.xy); this.setAttribute('transform', `translate(${p[0].toFixed(1)},${p[1].toFixed(1)})`); });
+  ov.cnec.selectAll('line.cne').each(function (d){ const a = P(d.xy[0]), b = P(d.xy[1]); this.setAttribute('x1', a[0]); this.setAttribute('y1', a[1]); this.setAttribute('x2', b[0]); this.setAttribute('y2', b[1]); });
+  ov.cnec.selectAll('line.co').each(function (d){ const a = P(d.xyco[0]), b = P(d.xyco[1]); this.setAttribute('x1', a[0]); this.setAttribute('y1', a[1]); this.setAttribute('x2', b[0]); this.setAttribute('y2', b[1]); });
+  ov.cnec.selectAll('circle.cnp').each(function (d){ const p = P(d.xy[0]); this.setAttribute('cx', p[0]); this.setAttribute('cy', p[1]); });
+  const placed = [];
+  ov.sites.selectAll('g.site').each(function (d){ const p = P(gpos(d)); d.sx = p[0]; d.sy = p[1]; this.setAttribute('transform', `translate(${p[0].toFixed(1)},${p[1].toFixed(1)})`); placed.push(d); });
+  // labels with greedy collision avoidance (largest first)
+  const boxes = placed.map(d => ({ x0: d.sx - d.r, y0: d.sy - d.r, x1: d.sx + d.r, y1: d.sy + d.r }));
+  const order = placed.slice().sort((a, b) => {
+    const sa = isSelGroup(a) ? 1e6 : 0, sb = isSelGroup(b) ? 1e6 : 0;
+    return (sb + b.P.length + b.C.length) - (sa + a.P.length + a.C.length);
+  });
+  const labs = [];
+  const cw = 6.1;
+  for (const d of order){
+    const name = siteLabel(d);
+    const w = name.length * cw + 4, h = 14;
+    const cands = [[d.sx + d.r + 5, d.sy + 4, 'start'], [d.sx - d.r - 5, d.sy + 4, 'end'], [d.sx, d.sy - d.r - 6, 'middle'], [d.sx, d.sy + d.r + 14, 'middle']];
+    for (const [x, y, anchor] of cands){
+      const x0 = anchor === 'start' ? x : (anchor === 'end' ? x - w : x - w / 2);
+      const b = { x0, y0: y - 11, x1: x0 + w, y1: y + 3 };
+      if (b.x0 < 2 || b.x1 > M.w - 2 || b.y0 < 2 || b.y1 > M.h - 2) continue;
+      if (boxes.some(o => !(b.x1 < o.x0 || b.x0 > o.x1 || b.y1 < o.y0 || b.y0 > o.y1))) continue;
+      boxes.push(b); labs.push({ key: d.key, x, y, anchor, name }); break;
+    }
+  }
+  ov.labels.selectAll('text').data(labs, d => d.key).join('text').attr('class', 'lbl')
+    .attr('x', d => d.x).attr('y', d => d.y).attr('text-anchor', d => d.anchor).text(d => d.name);
+}
+function isSelGroup(d){ return S.sel && ((S.sel.kind === 'site' && (S.sel.id === d.site || S.sel.id === d.site2)) || (S.sel.kind === 'ra' && [...d.P, ...d.C].some(x => x.ra === S.sel.id))); }
+function siteLabel(d){ const a = S.sites.get(d.site); if (d.site2){ const b = S.sites.get(d.site2); return `${short(a.name)} – ${short(b.name)}`; } return short(a.name); }
+const short = n => n.replace(/\s*\(.*\)$/, '');
+
+/* tooltip */
+const tip = $('#tip');
+function tapText(x){ if (x.b == null && x.a == null) return 'switched'; return `${tapStr(x.b)} → ${tapStr(x.a)}`; }
+function showSiteTip(ev, d){
+  const s = S.sites.get(d.site);
+  tip.innerHTML = '';
+  tip.append(el('h4', { text: siteLabel(d) }), el('div', { class: 'meta', text: `${s.tso} · ${s.cc}` }));
+  const ul = el('ul');
+  for (const x of d.P){ const r = S.ras[x.ra]; ul.append(el('li', null, el('span', null, el('span', { style: 'color:var(--prev);font-weight:700' }, '● '), r.label), el('span', { class: 'tap', text: tapText(x) }))); }
+  for (const x of d.C){ const r = S.ras[x.ra]; const cos = new Set(x.rows.map(rw => S.cnecs[rw.cn] && S.cnecs[rw.cn].co)); ul.append(el('li', null, el('span', null, el('span', { style: 'color:var(--cur);font-weight:700' }, '● '), r.label), el('span', { class: 'tap', text: `${x.rows.length} CNEC${x.rows.length > 1 ? 's' : ''} · ${cos.size} outage${cos.size > 1 ? 's' : ''}` }))); }
+  tip.append(ul);
+  tip.hidden = false; moveTip(ev);
+}
+function showGhostTip(ev, s){
+  const list = S.ras.concat(S.extra).filter(r => r.site === s.id || r.site2 === s.id);
+  tip.innerHTML = '';
+  tip.append(el('h4', { text: short(s.name) }), el('div', { class: 'meta', text: `${s.tso} · not used this hour` }));
+  const ul = el('ul');
+  for (const r of list.slice(0, 8)) ul.append(el('li', null, el('span', { text: r.label }), el('span', { class: 'tap', text: r.nP || r.nC ? `${fmtInt.format(r.nP + r.nCh)} h used` : 'never used' })));
+  if (list.length > 8) ul.append(el('li', { class: 'tap', text: `+${list.length - 8} more` }));
+  tip.append(ul); tip.hidden = false; moveTip(ev);
+}
+function moveTip(ev){
+  if (tip.hidden) return;
+  const r = $('#mapwrap').getBoundingClientRect();
+  let x = ev.clientX - r.left + 14, y = ev.clientY - r.top + 14;
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  if (x + w > M.w - 6) x = ev.clientX - r.left - w - 14;
+  if (y + h > M.h - 6) y = M.h - h - 6;
+  tip.style.left = Math.max(6, x) + 'px'; tip.style.top = Math.max(6, y) + 'px';
+}
+function hideTip(){ tip.hidden = true; }
+
+/* ---------------- timeline & month strip ---------------- */
+function renderTimeline(){
+  const cols = $('#tlCols'); cols.innerHTML = '';
+  const counts = S.hours.map((h, i) => { const v = filtered(S.hourData[i]); return { p: v.P.length, c: v.C.length, e: S.hourData[i] }; });
+  const maxP = Math.max(4, ...counts.map(x => x.p)), maxC = Math.max(2, ...counts.map(x => x.c));
+  $('#axP').textContent = `▲ preventive · max ${maxP}`; $('#axC').textContent = `▼ curative · max ${maxC}`;
+  const seen = new Map();
+  S.hours.forEach((h, i) => {
+    const lh = local(h).hour; const rep = seen.get(lh) || 0; seen.set(lh, rep + 1);
+    const c = counts[i];
+    const flag = !c.e || c.e.pr === 1 || c.e.pr === 2;
+    const b = el('button', { class: 'mtu' + (h === S.h ? ' sel' : '') + (flag ? ' flag' : ''), 'aria-pressed': h === S.h ? 'true' : 'false',
+      'aria-label': `${pad(lh)}:00 ${zone(h)}: ${c.p} preventive, ${c.c} curative`, title: `${pad(lh)}:00–${pad((lh + 1) % 24)}:00 ${zone(h)} · ${c.p} preventive · ${c.c} curative${flag ? ' · ' + statusOf(c.e).text : ''}`,
+      onclick: () => selectHour(h) },
+      el('div', { class: 'up' }, el('div', { class: 'bar', style: `height:${(100 * c.p / maxP).toFixed(1)}%` })),
+      el('div', { class: 'dn' }, el('div', { class: 'bar', style: `height:${(100 * c.c / maxC).toFixed(1)}%` })),
+      el('div', { class: 'hl', text: pad(lh) + (rep ? 'ʹ' : '') }));
+    cols.append(b);
+  });
+}
+function renderMonthStrip(){
+  const box = $('#monthStrip'); box.innerHTML = '';
+  const [y, m] = S.date.split('-').map(Number);
+  const n = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  $('#msLabel').textContent = monthName.format(new Date(Date.UTC(y, m - 1, 1)));
+  const vals = [];
+  for (let d = 1; d <= n; d++){ const ds = `${y}-${pad(m)}-${pad(d)}`; const v = S.dayIdx.get(ds); vals.push([ds, v]); }
+  const maxv = Math.max(1, ...vals.map(([, v]) => v ? v[2] / v[1] : 0));
+  for (const [ds, v] of vals){
+    const avgP = v ? v[2] / v[1] : 0;
+    const a = v ? 0.18 + 0.82 * Math.min(1, avgP / maxv) : 0;
+    const b = el('button', { class: ds === S.date ? 'sel' : '', disabled: !v, title: v ? `${fmtDay(ds)} · ${(avgP).toFixed(1)} preventive RAs per hour · curative RAs in ${v[4]} h` : `${fmtDay(ds)} · no data`,
+      'aria-label': fmtDay(ds), onclick: () => selectDay(ds) });
+    if (v) b.style.background = `color-mix(in srgb, var(--prev) ${Math.round(a * 100)}%, var(--rule))`;
+    if (v && v[4] > 0) b.append(el('span', { class: 'c' }));
+    box.append(b);
+  }
+}
+
+/* ---------------- panels ---------------- */
+function statusOf(e){
+  if (!e) return { cls: 'none', text: 'No data published for this hour' };
+  if (e.pr === 1) return { cls: 'warn', text: 'Hour not optimised by NRAO' };
+  if (e.pr === 2) return { cls: 'none', text: 'No data available' };
+  if (e.pr === 0 && !(e.c && e.c.length)) return { cls: 'none', text: 'NRAO ran: no remedial actions applied' };
+  return { cls: 'ok', text: 'Optimised by NRAO (non-costly RAO)' };
+}
+function tsoList(){ return [...new Set(S.ras.map(r => r.tso).filter(Boolean))].sort((a, b) => a.localeCompare(b)); }
+function typeIcon(r, stage){
+  const col = stage === 'C' ? 'var(--cur)' : (stage === 'P' ? 'var(--prev)' : 'var(--faint)');
+  const s = sv('svg', { class: 'ico', viewBox: '0 0 14 14', 'aria-hidden': 'true' });
+  const g = tg(r);
+  if (g === 'PST') s.append(sv('circle', { cx: 7, cy: 7, r: 5, fill: 'none', stroke: col, 'stroke-width': 2.4 }));
+  else if (g === 'LINE') s.append(sv('path', { d: 'M1 7h12', stroke: col, 'stroke-width': 2.4, 'stroke-dasharray': '3 2' }));
+  else s.append(sv('rect', { x: 3.2, y: 3.2, width: 7.6, height: 7.6, transform: 'rotate(45 7 7)', fill: 'none', stroke: col, 'stroke-width': 2.2 }));
+  return s;
+}
+function renderHour(){
+  const pane = $('#p-hour'); pane.innerHTML = '';
+  const h = S.h; const i = S.hours.indexOf(h); const e = S.hourData[i];
+  const lh = local(h).hour;
+  const st = statusOf(e);
+  pane.append(el('div', { class: 'mtuhead' },
+    el('div', { class: 'when', text: `${fmtDay(S.date)}, ${pad(lh)}:00–${pad((lh + 1) % 24)}:00` }),
+    el('div', { class: 'sub', text: `${zone(h)} · ${utcHour(h)}:00 UTC · MTU ${i + 1} of ${S.hours.length}` }),
+    el('span', { class: 'pill ' + st.cls }, el('span', { class: 'd' }), st.text)));
+  const v = S.view;
+  const cnSet = new Set(); const coSet = new Set();
+  for (const c of v.C) for (const r of c.rows){ cnSet.add(r.cn); const cn = S.cnecs[r.cn]; if (cn) coSet.add(cn.co); }
+  const sites = new Set(v.groups.flatMap(g => [g.site, g.site2]).filter(Boolean));
+  const jump = id => () => { const t = document.getElementById(id); if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
+  pane.append(el('div', { class: 'kpis' },
+    el('button', { class: 'kpi p', onclick: jump('secP'), title: 'Go to the preventive list' }, el('div', { class: 'v', text: v.P.length }), el('div', { class: 'k', text: 'preventive RAs' })),
+    el('button', { class: 'kpi c', onclick: jump('secC'), title: 'Go to the curative list' }, el('div', { class: 'v', text: v.C.length }), el('div', { class: 'k', text: `curative RAs · ${cnSet.size} CNECs, ${coSet.size} outages` })),
+    el('button', { class: 'kpi', onclick: () => d3.select('#overlay').transition().duration(400).call(M.zoom.transform, d3.zoomIdentity), title: 'Show the whole map' }, el('div', { class: 'v', text: sites.size }), el('div', { class: 'k', text: 'substations involved' }))));
+  // filters
+  const chip = (label, pressed, on, dot) => el('button', { class: 'chip', 'aria-pressed': pressed ? 'true' : 'false', onclick: on }, dot ? el('span', { class: 'dot', style: `background:${dot}` }) : null, label);
+  const sel = el('select', { 'aria-label': 'Filter by TSO', onchange: ev => { S.f.tso = ev.target.value; refresh(); } }, el('option', { value: '', text: 'All TSOs' }), ...tsoList().map(t => el('option', { value: t, text: t, selected: S.f.tso === t })));
+  pane.append(el('div', { class: 'filters' },
+    chip('Preventive', S.f.P, () => { S.f.P = !S.f.P; refresh(); }, 'var(--prev)'),
+    chip('Curative', S.f.C, () => { S.f.C = !S.f.C; refresh(); }, 'var(--cur)'),
+    chip('PST & taps', S.f.types.has('PST'), () => toggleType('PST')),
+    chip('Topology', S.f.types.has('TOPO'), () => toggleType('TOPO')),
+    chip('Lines', S.f.types.has('LINE'), () => toggleType('LINE')),
+    sel));
+  if (S.sel){ const card = selectionCard(); if (card) pane.append(card); }
+  // preventive list
+  const ps = el('section', { class: 'sect', id: 'secP' }, el('h3', null, 'Preventive', el('span', { class: 'n', text: `${v.P.length} applied in the base case` })));
+  if (!v.P.length) ps.append(el('div', { class: 'empty', text: e && e.pr === 1 ? 'This hour was not optimised by NRAO, so no preventive set was published.' : (S.f.P ? 'No preventive remedial actions match the current filters.' : 'Preventive actions are hidden by the filter.') }));
+  const byTso = d3.group(v.P, x => S.ras[x.ra].tso);
+  for (const [tso, items] of [...byTso].sort((a, b) => a[0].localeCompare(b[0]))){
+    ps.append(el('div', { class: 'tsoh', text: tso }));
+    const list = el('div', { class: 'list' });
+    for (const x of items.sort((a, b) => S.ras[a.ra].label.localeCompare(S.ras[b.ra].label))){
+      const r = S.ras[x.ra];
+      const dl = x.a != null && x.b != null ? x.a - x.b : null;
+      list.append(el('button', { class: 'item' + (S.sel && S.sel.kind === 'ra' && S.sel.id === x.ra ? ' sel' : ''), 'data-ra': x.ra, onclick: () => setSel({ kind: 'ra', id: x.ra }),
+        onmouseenter: () => hoverRa(x.ra), onmouseleave: () => hoverRa(null) },
+        typeIcon(r, 'P'),
+        el('span', { class: 'nm' }, el('b', { text: r.label }), el('small', { text: r.name })),
+        el('span', { class: 'tap' }, x.b == null && x.a == null ? 'applied' : `${tapStr(x.b)} → ${tapStr(x.a)}`, dl != null ? el('span', { class: 'd', text: `Δ ${minus(dl)} taps` }) : null)));
+    }
+    ps.append(list);
+  }
+  pane.append(ps);
+  // curative list
+  const cs = el('section', { class: 'sect', id: 'secC' }, el('h3', null, 'Curative', el('span', { class: 'n', text: `${v.C.length} RAs prepared for outages` })));
+  if (!v.C.length) cs.append(el('div', { class: 'empty', text: S.f.C ? 'No curative remedial actions in this hour.' : 'Curative actions are hidden by the filter.' }));
+  for (const x of v.C.slice().sort((a, b) => b.rows.length - a.rows.length)){
+    const r = S.ras[x.ra];
+    const byCo = d3.group(x.rows, rw => (S.cnecs[rw.cn] || {}).co || '');
+    const taps = [...new Set(x.rows.map(rw => rw.b == null && rw.a == null ? '' : `${tapStr(rw.b)} → ${tapStr(rw.a)}`))].filter(Boolean);
+    const det = el('details', { class: 'cra', 'data-ra': x.ra });
+    det.addEventListener('toggle', () => { if (det.open) setSel({ kind: 'ra', id: x.ra }, true); });
+    const sum = el('summary', { onmouseenter: () => hoverRa(x.ra), onmouseleave: () => hoverRa(null) },
+      typeIcon(r, 'C'),
+      el('span', { class: 'nm' }, el('b', { text: r.label }), el('small', { text: `${r.tso} · ${r.name}` })),
+      el('span', { class: 'tap' }, `${x.rows.length} CNEC${x.rows.length > 1 ? 's' : ''}`, el('span', { class: 'd', text: taps.length ? (taps.length === 1 ? taps[0] : `${taps.length} tap settings`) : `${byCo.size} outage${byCo.size > 1 ? 's' : ''}` })));
+    det.append(sum);
+    const box = el('div', { class: 'cn' });
+    for (const [co, rows] of byCo){
+      const ul = el('ul');
+      for (const rw of rows){ const cn = S.cnecs[rw.cn]; ul.append(el('li', null, cn ? cn.cne : '?', el('span', { class: 't', text: ` · ${cn ? cn.tso : ''}${rw.b != null || rw.a != null ? ` · tap ${tapStr(rw.b)} → ${tapStr(rw.a)}` : ''}` }))); }
+      box.append(el('div', { class: 'co' }, el('div', { class: 'cot' }, 'After outage of ', el('b', { text: co.replace(/^N-1\s*/, '') || 'n/a' })), ul));
+    }
+    det.append(box);
+    cs.append(det);
+  }
+  pane.append(cs);
+}
+function toggleType(t){ if (S.f.types.has(t)) S.f.types.delete(t); else S.f.types.add(t); if (!S.f.types.size) S.f.types.add(t); refresh(); }
+function hoverRa(ra){ S.hotRa = ra; renderCnecs(); placeOverlay(); }
+function highlightRows(){
+  document.querySelectorAll('#p-hour .item.hot').forEach(x => x.classList.remove('hot'));
+  if (!S.hot || !S.view) return;
+  const g = S.view.groups.find(x => x.key === S.hot); if (!g) return;
+  for (const x of g.P) document.querySelectorAll(`#p-hour .item[data-ra="${x.ra}"]`).forEach(n => n.classList.add('hot'));
+}
+function fmtCoord(lat, lon){ return `${Math.abs(lat).toFixed(4)}° ${lat >= 0 ? 'N' : 'S'}, ${Math.abs(lon).toFixed(4)}° ${lon >= 0 ? 'E' : 'W'}`; }
+function sparkline(arr, w, h){
+  const s = sv('svg', { width: w, height: h, viewBox: `0 0 ${w} ${h}`, class: 'spark', 'aria-hidden': 'true' });
+  const max = Math.max(1, ...arr); const bw = w / arr.length;
+  arr.forEach((v, i) => { if (!v) return; const bh = Math.max(1.2, (h - 1) * v / max); s.append(sv('rect', { x: (i * bw).toFixed(2), y: (h - bh).toFixed(2), width: Math.max(0.8, bw - 0.6).toFixed(2), height: bh.toFixed(2), fill: 'var(--faint)' })); });
+  s.append(sv('line', { x1: 0, x2: w, y1: h - 0.5, y2: h - 0.5, stroke: 'var(--rule)' }));
+  return s;
+}
+function selectionCard(){
+  const sel = S.sel;
+  const card = el('div', { class: 'selcard' });
+  const close = el('button', { class: 'closebtn', 'aria-label': 'Clear selection', onclick: () => setSel(null) }, '×');
+  if (sel.kind === 'site'){
+    const s = S.sites.get(sel.id); if (!s) return null;
+    const ras = S.ras.concat(S.extra).filter(r => r.site === s.id || r.site2 === s.id);
+    card.append(el('div', { class: 'hd' }, el('div', null, el('h4', { text: s.name }), el('div', { class: 'meta', text: `${s.tso} · ${s.cc} · ${ras.length} remedial action${ras.length > 1 ? 's' : ''} in the catalogue` })), close));
+    card.append(el('div', { class: 'coord', text: fmtCoord(s.lat, s.lon) }), el('div', { class: 'src', text: `Position: ${s.src}` }));
+    const list = el('div', { class: 'list' });
+    for (const r of ras.sort((a, b) => (b.nP + b.nCh) - (a.nP + a.nCh))){
+      list.append(el('button', { class: 'item', onclick: () => r.i != null ? setSel({ kind: 'ra', id: r.i }) : null, disabled: r.i == null },
+        typeIcon(r, r.nP && !r.nCh ? 'P' : (r.nCh && !r.nP ? 'C' : null)),
+        el('span', { class: 'nm' }, el('b', { text: r.label }), el('small', { text: r.name })),
+        el('span', { class: 'tap', text: r.nP || r.nCh ? `${fmtInt.format(r.nP + r.nCh)} h` : 'never used' })));
+    }
+    card.append(list);
+  } else {
+    const r = S.ras[sel.id]; if (!r) return null;
+    const s = S.sites.get(r.site), s2 = r.site2 ? S.sites.get(r.site2) : null;
+    card.append(el('div', { class: 'hd' }, el('div', null, el('h4', { text: r.label }), el('div', { class: 'meta', text: `${r.tso} · ${r.kind}` })), close));
+    const kv = el('dl', { class: 'kv' },
+      el('dt', { text: 'JAO name' }), el('dd', { text: r.name }),
+      el('dt', { text: 'Location' }), el('dd', { text: s ? `${s.name}${s2 ? ' – ' + s2.name : ''}` : 'unknown' }),
+      s ? el('dt', { text: 'Coordinates' }) : null, s ? el('dd', { text: fmtCoord(s.lat, s.lon) + (s2 ? `  /  ${fmtCoord(s2.lat, s2.lon)}` : '') }) : null,
+      el('dt', { text: 'Used' }), el('dd', { text: `${fmtInt.format(r.nP)} h preventive · ${fmtInt.format(r.nCh)} h curative` }),
+      el('dt', { text: 'First / last' }), el('dd', { text: r.first ? `${r.first} / ${r.last}` : 'never' }),
+      r.tmin != null ? el('dt', { text: 'Tap range seen' }) : null, r.tmin != null ? el('dd', { text: `${tapStr(r.tmin)} … ${tapStr(r.tmax)}` }) : null);
+    card.append(kv);
+    if (r.desc) card.append(el('p', null, el('b', { text: 'JAO RA list: ' }), r.desc));
+    card.append(el('p', { text: r.auto }));
+    if (r.m){
+      const wrap = el('div', null, el('div', { class: 'src', text: `Hours used per month, ${S.monthKeys[0]} → ${S.monthKeys[S.monthKeys.length - 1]}` }), sparkline(r.m, 340, 34));
+      card.append(wrap);
+    }
+    if (s) card.append(el('div', { class: 'src', text: `Position source: ${s.src}` }));
+    const row = el('div', { class: 'row' });
+    if (r.last) row.append(el('button', { class: 'linkbtn', onclick: () => jumpToUse(r), text: 'Go to last use' }));
+    if (s) row.append(el('button', { class: 'linkbtn', onclick: () => zoomTo(s, 5), text: 'Zoom to site' }));
+    card.append(row);
+  }
+  return card;
+}
+function renderCatalog(){
+  const pane = $('#p-cat'); pane.innerHTML = '';
+  const q = el('input', { type: 'search', placeholder: 'Search RA, substation or TSO', value: S.catQuery, 'aria-label': 'Search the catalogue', id: 'catSearch' });
+  q.addEventListener('input', () => { S.catQuery = q.value; renderCatList(); });
+  const tsoSel = el('select', { 'aria-label': 'TSO', onchange: ev => { S.catTso = ev.target.value; renderCatList(); } }, el('option', { value: '', text: 'All TSOs' }), ...tsoList().map(t => el('option', { value: t, text: t, selected: S.catTso === t })));
+  const typeSel = el('select', { 'aria-label': 'Type', onchange: ev => { S.catType = ev.target.value; renderCatList(); } },
+    el('option', { value: '', text: 'All types' }), el('option', { value: 'PST', text: 'PST & taps', selected: S.catType === 'PST' }), el('option', { value: 'TOPO', text: 'Topology', selected: S.catType === 'TOPO' }), el('option', { value: 'LINE', text: 'Line switching', selected: S.catType === 'LINE' }));
+  const unused = el('button', { class: 'chip', 'aria-pressed': S.catUnused ? 'true' : 'false', onclick: () => { S.catUnused = !S.catUnused; unused.setAttribute('aria-pressed', S.catUnused ? 'true' : 'false'); renderCatList(); } }, 'Include never used');
+  const copy = el('button', { class: 'linkbtn', onclick: copyCsv, text: 'Copy coordinates as CSV' });
+  const msg = el('span', { class: 'copied', id: 'copyMsg' });
+  pane.append(el('div', { class: 'catctl' }, q, el('div', { class: 'filters' }, tsoSel, typeSel, unused), el('div', { class: 'row filters' }, copy, msg)));
+  pane.append(el('div', { class: 'empty', id: 'catCount' }));
+  pane.append(el('div', { class: 'list', id: 'catList' }));
+  renderCatList();
+}
+function renderCatList(){
+  const box = $('#catList'); if (!box) return; box.innerHTML = '';
+  const q = S.catQuery.trim().toLowerCase();
+  let all = S.ras.concat(S.catUnused ? S.extra : []);
+  all = all.filter(r => (!S.catTso || r.tso === S.catTso) && (!S.catType || tg(r) === S.catType) &&
+    (!q || [r.label, r.name, r.tso, (S.sites.get(r.site) || {}).name || '', r.kind].join(' ').toLowerCase().includes(q)));
+  all.sort((a, b) => (b.nP + b.nCh) - (a.nP + a.nCh) || a.label.localeCompare(b.label));
+  $('#catCount').textContent = `${all.length} remedial actions · ${all.filter(r => !r.nP && !r.nCh).length} never applied since June 2022`;
+  for (const r of all){
+    const used = r.nP || r.nCh;
+    box.append(el('button', { class: 'catrow' + (S.sel && S.sel.kind === 'ra' && S.sel.id === r.i ? ' sel' : ''), onclick: () => { if (r.i != null) setSel({ kind: 'ra', id: r.i }, false, true); else if (r.site) setSel({ kind: 'site', id: r.site }, false, true); } },
+      typeIcon(r, r.nP && !r.nCh ? 'P' : (r.nCh && !r.nP ? 'C' : null)),
+      el('span', { class: 'nm' }, el('b', { text: r.label }), el('small', { text: `${r.tso} · ${r.name}` })),
+      el('span', { class: 'use' }, used ? sparkline(r.m || [], 74, 16) : null,
+        used ? el('span', null, el('b', { class: 'p', text: fmtInt.format(r.nP) }), ' P · ', el('b', { class: 'c', text: fmtInt.format(r.nCh) }), ' C h') : el('span', { text: 'listed, never used' }))));
+  }
+}
+function copyCsv(){
+  const rows = [['jao_name', 'label', 'tso', 'type', 'substation', 'lat', 'lon', 'substation_2', 'lat_2', 'lon_2', 'hours_preventive', 'hours_curative', 'first_use', 'last_use', 'position_source']];
+  for (const r of S.ras.concat(S.extra)){
+    const s = S.sites.get(r.site) || {}, s2 = r.site2 ? S.sites.get(r.site2) || {} : {};
+    rows.push([r.name, r.label, r.tso, r.kind, s.name || '', s.lat ?? '', s.lon ?? '', s2.name || '', s2.lat ?? '', s2.lon ?? '', r.nP, r.nCh, r.first, r.last, s.src || '']);
+  }
+  const csv = rows.map(r => r.map(v => { const t = String(v ?? ''); return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; }).join(',')).join('\n');
+  const msg = $('#copyMsg');
+  const fallback = () => { const ta = el('textarea', { style: 'width:100%;height:120px;font-family:var(--font-mono);font-size:11px' }); ta.value = csv; msg.replaceWith(ta); ta.select(); };
+  try { navigator.clipboard.writeText(csv).then(() => { msg.textContent = `Copied ${rows.length - 1} rows`; }, fallback); } catch (e){ fallback(); }
+}
+function renderAbout(){
+  const pane = $('#p-about'); pane.innerHTML = '';
+  const first = shortDay.format(dUTC(S.dayFirst)), last = shortDay.format(dUTC(S.dayLast));
+  pane.append(el('div', { class: 'about', html: `
+    <h3>What the map shows</h3>
+    <p>Each hour (market time unit) of the Core day-ahead flow-based capacity calculation, JAO publishes the non-costly remedial actions selected by the NRAO optimiser. <b>Preventive</b> RAs are applied in the base case before any outage. <b>Curative</b> RAs are only activated after a specific contingency (outage) to relieve the listed critical network elements (CNECs).</p>
+    <p>Coverage: business days ${first} to ${last}, ${fmtInt.format(S.nHours)} hourly MTUs, ${fmtInt.format(S.nPrev)} preventive RA activations and ${fmtInt.format(S.nCurRows)} curative CNEC rows. Times are shown in Brussels time (CET/CEST), as on the JAO site. Data last refreshed ${S.generated || 'unknown'}.</p>
+    <p id="repoLink" hidden></p>
+    <h3>Sources</h3>
+    <ul>
+      <li>Preventive and curative RAs per hour: JAO Publication Tool, Core CCR, pages <a href="https://publicationtool.jao.eu/core/pra" target="_blank" rel="noopener">Remedial Action Preventive</a> and <a href="https://publicationtool.jao.eu/core/cra" target="_blank" rel="noopener">Remedial Action Curative</a> (API endpoints <code>/core/api/data/pra</code> and <code>/cra</code>).</li>
+      <li>List of available RAs, Core grid (lines, tie-lines, transformers): <a href="https://www.jao.eu/static-grid-model" target="_blank" rel="noopener">JAO Core Static Grid Model</a>, 9th release (March 2026), sheet “Remedial Actions”.</li>
+      <li>Substation coordinates: OpenStreetMap power=substation objects (© OpenStreetMap contributors, ODbL), matched by name near the position in the JAO Static Grid Model map; where no OSM match exists the SGM map position is used. The source is listed for every substation.</li>
+      <li>Country outlines: Natural Earth.</li>
+    </ul>
+    <h3>How RAs were placed</h3>
+    <p>RA names follow the Core naming convention (for example <code>PST_Substation_Unit</code>, <code>TOP_2N_Substation</code>, <code>TOP_OPEN_SubstationA_SubstationB</code>). Each name was parsed to its substation(s); TSO codes such as <code>CHRD</code> (Hradec), <code>CLIS</code> (Lískovec) or <code>YFPST</code> (Ybbsfeld) were resolved by hand. Line-switching RAs are drawn between both substations. CNEC and contingency lines are matched to the Static Grid Model and drawn as straight lines between substations.</p>
+    <h3>Caveats</h3>
+    <ul>
+      <li>PST tap columns are the tap position in the common grid model before and after NRAO, as published.</li>
+      <li>Hours marked with hatching in the timeline were not optimised by NRAO or have no data.</li>
+      <li>A few CNECs outside the Core grid model (for example Swiss lines) have no drawn geometry.</li>
+    </ul>` }));
+  // on GitHub Pages, link back to the repository that holds the code, data and update workflow
+  const host = location.hostname;
+  if (/^[a-z0-9-]+\.github\.io$/i.test(host)){
+    const user = host.split('.')[0];
+    const seg = location.pathname.split('/').filter(Boolean)[0];
+    const repo = seg && !/\.html?$/i.test(seg) ? seg : `${user}.github.io`;
+    const url = `https://github.com/${encodeURIComponent(user)}/${encodeURIComponent(repo)}`;
+    const p = $('#repoLink');
+    p.append('Code, data and the daily update workflow: ', el('a', { href: url, target: '_blank', rel: 'noopener', text: `github.com/${user}/${repo}` }), '.');
+    p.hidden = false;
+  }
+}
+
+/* ---------------- selection & navigation ---------------- */
+function setSel(sel, fromDetails, fromCat){
+  S.sel = sel;
+  if (fromCat) switchTab('hour');
+  if (!fromDetails){ renderHour(); if (sel) $('#p-hour').scrollTop = 0; }
+  renderOverlay();
+  if (fromCat){ const r = sel && sel.kind === 'ra' ? S.ras[sel.id] : null; const s = r ? S.sites.get(r.site) : (sel ? S.sites.get(sel.id) : null); if (s) zoomTo(s, Math.max(M.t.k, 3)); }
+  if (document.querySelector('#p-cat:not([hidden])')) renderCatList();
+}
+function zoomTo(s, k){
+  if (!s || !s.xy) return;
+  const t = d3.zoomIdentity.translate(M.w / 2, M.h / 2).scale(k).translate(-s.xy[0], -s.xy[1]);
+  d3.select('#overlay').transition().duration(window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 650).call(M.zoom.transform, t);
+}
+async function jumpToUse(r){
+  // last use is stored as a UTC date; check that local day and the next one
+  for (const d of [addDays(r.last, 1), r.last]){
+    if (!S.dayIdx.has(d)) continue;
+    const { hs, data } = await loadDay(d);
+    for (let i = hs.length - 1; i >= 0; i--){
+      const e = data[i]; if (!e) continue;
+      const hit = (e.p || []).some(x => x[0] === r.i) || (e.c || []).some(row => { for (let k = 1; k < row.length; k += 3) if (row[k] === r.i) return true; return false; });
+      if (hit){ await selectDay(d, hs[i]); setSel({ kind: 'ra', id: r.i }); const s = S.sites.get(r.site); if (s) zoomTo(s, Math.max(M.t.k, 3)); return; }
+    }
+  }
+}
+function computeView(){
+  const i = S.hours.indexOf(S.h);
+  const e = S.hourData[i];
+  const v = filtered(e);
+  v.groups = buildGroups(v);
+  S.view = v;
+  const st = statusOf(e);
+  const banner = $('#banner');
+  if (!e || e.pr === 1 || e.pr === 2 || (!v.groups.length && (v.allP.length || v.allC.length))){
+    banner.hidden = false;
+    banner.textContent = !v.groups.length && (v.allP.length || v.allC.length) ? 'All actions in this hour are hidden by the filters' : st.text;
+  } else if (!v.groups.length){ banner.hidden = false; banner.textContent = st.text; }
+  else banner.hidden = true;
+}
+function refresh(){ computeView(); renderTimeline(); renderHour(); renderOverlay(); }
+async function selectDay(d, preferH){
+  if (!S.dayIdx.has(d)){
+    // snap to the closest available day
+    const keys = [...S.dayIdx.keys()]; d = d < keys[0] ? keys[0] : keys[keys.length - 1];
+  }
+  const keepHour = S.h != null ? local(S.h).hour : null;
+  S.date = d; $('#date').value = d;
+  const { hs, data } = await loadDay(d);
+  S.hours = hs; S.hourData = data;
+  let h = preferH != null && hs.includes(preferH) ? preferH : null;
+  if (h == null && keepHour != null) h = hs.find(x => local(x).hour === keepHour) ?? null;
+  if (h == null){ let best = -1; hs.forEach((x, i) => { const v = actionsOf(data[i]); const n = v.P.length + v.C.length; if (n > best){ best = n; h = x; } }); }
+  S.h = h;
+  renderMonthStrip(); refresh();
+}
+function selectHour(h){ S.h = h; refresh(); }
+async function step(dir){
+  const i = S.hours.indexOf(S.h);
+  if (i + dir >= 0 && i + dir < S.hours.length){ selectHour(S.hours[i + dir]); return; }
+  const nd = addDays(S.date, dir);
+  if (!S.dayIdx.has(nd)){ stopPlay(); return; }
+  const { hs } = await loadDay(nd);
+  await selectDay(nd, dir > 0 ? hs[0] : hs[hs.length - 1]);
+}
+function togglePlay(){ if (S.playing) stopPlay(); else { S.playing = setInterval(() => step(1), 1200); $('#playIco').innerHTML = '<path d="M4.5 3h2.6v10H4.5zM8.9 3h2.6v10H8.9z" fill="currentColor"/>'; $('#play').setAttribute('aria-label', 'Pause'); } }
+function stopPlay(){ clearInterval(S.playing); S.playing = null; $('#playIco').innerHTML = '<path d="M5 3.5v9l7-4.5z" fill="currentColor"/>'; $('#play').setAttribute('aria-label', 'Play through the hours'); }
+function switchTab(name){
+  for (const t of ['hour', 'cat', 'about']){ const on = t === name; $('#t-' + t).setAttribute('aria-selected', on ? 'true' : 'false'); $('#p-' + t).hidden = !on; }
+  if (name === 'cat') renderCatalog();
+}
+
+/* ---------------- boot ---------------- */
+async function boot(){
+  const [cat, grid, topo] = await Promise.all(['catalog.json', 'grid.json', 'europe.topo.json'].map(u => fetch(u).then(r => { if (!r.ok) throw new Error(`${u}: HTTP ${r.status}`); return r.json(); })));
+  S.ras = cat.ras; S.extra = cat.extra; S.cnecs = cat.cnecs; S.reasons = cat.reasons;
+  for (const s of cat.sites) S.sites.set(s.id, s);
+  S.monthKeys = cat.months.map(m => m[0]); S.months = new Set(S.monthKeys);
+  for (const d of cat.days) S.dayIdx.set(d[0], d);
+  const days = [...S.dayIdx.keys()]; S.dayFirst = days[0]; S.dayLast = days[days.length - 1];
+  S.nHours = cat.days.reduce((s, d) => s + d[1], 0); S.nPrev = cat.days.reduce((s, d) => s + d[2], 0);
+  S.nCurRows = cat.days.reduce((s, d) => s + d[3], 0);
+  S.generated = cat.generated || '';
+  $('#coverage').textContent = `${shortDay.format(dUTC(S.dayFirst))} – ${shortDay.format(dUTC(S.dayLast))}`;
+  const di = $('#date'); di.min = S.dayFirst; di.max = S.dayLast;
+  di.addEventListener('change', () => { if (di.value) selectDay(di.value); });
+  $('#prevDay').onclick = () => selectDay(addDays(S.date, -1));
+  $('#nextDay').onclick = () => selectDay(addDays(S.date, 1));
+  $('#play').onclick = togglePlay;
+  $('#zin').onclick = () => d3.select('#overlay').transition().duration(250).call(M.zoom.scaleBy, 1.7);
+  $('#zout').onclick = () => d3.select('#overlay').transition().duration(250).call(M.zoom.scaleBy, 1 / 1.7);
+  $('#zreset').onclick = () => d3.select('#overlay').transition().duration(400).call(M.zoom.transform, d3.zoomIdentity);
+  $('#tgAvail').onclick = ev => { S.showAvail = !S.showAvail; ev.currentTarget.setAttribute('aria-pressed', S.showAvail); renderOverlay(); };
+  $('#tgGrid').onclick = ev => { S.showGrid = !S.showGrid; ev.currentTarget.setAttribute('aria-pressed', S.showGrid); $('#legGrid').hidden = !S.showGrid; drawBase(); };
+  for (const t of ['hour', 'cat', 'about']) $('#t-' + t).onclick = () => switchTab(t);
+  document.addEventListener('keydown', ev => {
+    if (ev.target.closest('input,select,textarea,summary')) return;
+    if (ev.key === 'ArrowRight' && !ev.shiftKey){ ev.preventDefault(); step(1); }
+    else if (ev.key === 'ArrowLeft' && !ev.shiftKey){ ev.preventDefault(); step(-1); }
+    else if (ev.key === 'ArrowRight' && ev.shiftKey){ ev.preventDefault(); selectDay(addDays(S.date, 1)); }
+    else if (ev.key === 'ArrowLeft' && ev.shiftKey){ ev.preventDefault(); selectDay(addDays(S.date, -1)); }
+    else if (ev.key === ' ' && !ev.target.closest('button')){ ev.preventDefault(); togglePlay(); }
+    else if (ev.key === 'Escape'){ setSel(null); }
+  });
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  const redraw = () => { drawBase(); };
+  mq.addEventListener && mq.addEventListener('change', redraw);
+  new MutationObserver(redraw).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class', 'style'] });
+  initOverlay();
+  setupMap(topo, grid);
+  renderAbout();
+  await selectDay(S.dayLast);
+  $('#loading').remove();
+}
+boot().catch(err => { const l = $('#loading'); if (l){ l.classList.add('err'); l.textContent = 'Could not load the data: ' + err.message; } console.error(err); });
+})();
+</script>
+</body>
+</html>

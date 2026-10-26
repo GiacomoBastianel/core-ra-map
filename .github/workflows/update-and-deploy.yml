@@ -1,0 +1,94 @@
+name: Update data and deploy
+
+on:
+  schedule:
+    # Daily at 10:52 UTC (11:52 CET / 12:52 CEST), after JAO publishes the next business day at 10:30 Brussels time.
+    - cron: '52 10 * * *'
+  workflow_dispatch:
+    inputs:
+      from:
+        description: 'First business day to (re)load, YYYY-MM-DD. Leave empty for the last day already on the map.'
+        required: false
+        default: ''
+      to:
+        description: 'Last business day to load, YYYY-MM-DD. Leave empty for tomorrow.'
+        required: false
+        default: ''
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download new remedial actions from JAO
+        if: github.event_name != 'push'
+        env:
+          FROM_DAY: ${{ inputs.from }}
+          TO_DAY: ${{ inputs.to }}
+        run: |
+          args=()
+          for v in "$FROM_DAY" "$TO_DAY"; do
+            if [ -n "$v" ] && ! [[ "$v" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then echo "::error::Dates must look like 2026-10-26, got '$v'"; exit 1; fi
+          done
+          [ -n "$FROM_DAY" ] && args+=(--from "$FROM_DAY")
+          [ -n "$TO_DAY" ] && args+=(--to "$TO_DAY")
+          python3 pipeline/update.py --site . --fetch "${args[@]}" | tee "$RUNNER_TEMP/summary.json"
+
+      - name: Write run summary
+        if: github.event_name != 'push'
+        run: |
+          python3 - "$RUNNER_TEMP/summary.json" >> "$GITHUB_STEP_SUMMARY" <<'EOF'
+          import json, sys
+          s = json.load(open(sys.argv[1]))
+          print('### Core remedial action map')
+          print(f"- Hours added: {s['hours_added']}, re-checked: {s['hours_replaced']}")
+          print(f"- Last business day on the map: {s['last_day']}")
+          for r in s['new_ras']:
+              print(f"- New remedial action: `{r['name']}` ({r['tso']}) placed at {r['site'] or 'no substation found'}")
+          if s['unplaced_new_ras']:
+              print(f"- Not on the map (substation unknown): {', '.join(s['unplaced_new_ras'])}")
+          if s['new_cnecs']:
+              print(f"- New CNECs: {s['new_cnecs']}, of which without geometry: {s['new_cnecs_without_geometry']}")
+          EOF
+
+      - name: Commit updated data
+        if: github.event_name != 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add catalog.json data
+          if git diff --cached --quiet; then
+            echo "No data changes"
+          else
+            git commit -m "Data update $(date -u +%Y-%m-%d)"
+            git pull --rebase origin "$GITHUB_REF_NAME"
+            git push origin "HEAD:$GITHUB_REF_NAME"
+          fi
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+  deploy:
+    needs: update
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
