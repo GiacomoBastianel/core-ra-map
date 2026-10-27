@@ -6,7 +6,7 @@ An hour-by-hour map of the remedial actions (RAs) that JAO publishes for the Cor
 
 ## How the data stays up to date
 
-`.github/workflows/update-and-deploy.yml` is started every morning at about 06:00 Brussels time by a scheduled task that calls the GitHub API (`workflow_dispatch`). GitHub's built-in cron schedule did not fire reliably for this repository. JAO publishes each business day around 10:30 the day before, so the morning run adds the current day. Each run:
+`.github/workflows/update-and-deploy.yml` is started every morning at about 06:00 Brussels time by a scheduled task that calls the GitHub API (`workflow_dispatch`). GitHub's built-in cron schedule did not fire reliably for this repository. JAO usually has a business day online by the evening two days before (officially by 10:30 the day before), so the morning run normally adds the next day. Each run:
 
 1. downloads the preventive and curative RAs from the JAO Publication Tool API (`/core/api/data/pra` and `/core/api/data/cra`), starting from the last day already on the map;
 2. merges them into `catalog.json` and `data/YYYY-MM.json`, recomputes the usage statistics and places any new RA or CNEC on the map;
